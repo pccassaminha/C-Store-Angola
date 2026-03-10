@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Store, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -135,7 +135,11 @@ export default function AdminDashboard() {
                   {pendingStores.map((store) => (
                     <tr key={store.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                       <td className="p-4 font-medium">{store.name}</td>
-                      <td className="p-4 text-zinc-500">/store/{store.slug}</td>
+                      <td className="p-4 text-zinc-500">
+                        <Link to={`/store/${store.slug}`} target="_blank" className="hover:text-blue-500 hover:underline">
+                          /store/{store.slug}
+                        </Link>
+                      </td>
                       <td className="p-4 text-zinc-500">{store.owner_email}</td>
                       <td className="p-4 flex justify-end gap-2">
                         <button

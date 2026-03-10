@@ -29,11 +29,13 @@ export default function Header() {
     document.title = title;
   }, [location, store?.name]);
   
-  const promoText = lang === 'EN' 
+  const defaultPromoText = lang === 'EN' 
     ? "✨ BUY MORE THAN ONE AND GET GRADUAL DISCOUNTS! ✨" 
     : lang === 'FR' 
     ? "✨ ACHETEZ-EN PLUS D'UN ET OBTENEZ DES RÉDUCTIONS PROGRESSIVES ! ✨" 
     : "✨ COMPRE MAIS DE UM E RECEBA DESCONTO GRADUALMENTE! ✨";
+    
+  const promoText = store?.marquee_text || defaultPromoText;
   
   // Simple state for theme
   const [isDark, setIsDark] = useState(() => {
@@ -60,7 +62,7 @@ export default function Header() {
 
   return (
     <>
-      {!isAdmin && (
+      {!isAdmin && store?.has_marquee !== 0 && (
         <div className="fixed top-0 w-full z-50 bg-gradient-to-r from-emerald-600 to-blue-600 text-white h-8 flex items-center overflow-hidden">
           <div className="flex whitespace-nowrap animate-marquee w-max min-w-full">
             {[...Array(6)].map((_, i) => (
@@ -72,17 +74,17 @@ export default function Header() {
         </div>
       )}
       
-      <header className={`fixed ${isAdmin ? 'top-0' : 'top-8'} w-full z-40 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-black/5 dark:border-white/10 transition-all`}>
+      <header className={`fixed ${isAdmin || store?.has_marquee === 0 ? 'top-0' : 'top-8'} w-full z-40 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-black/5 dark:border-white/10 transition-all`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <Link 
-            to="/"
+            to={store?.slug && store.slug !== 'main' ? `/store/${store.slug}` : "/"}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="flex items-center gap-2 sm:gap-3 font-semibold text-base sm:text-lg tracking-tight hover:opacity-80 transition-opacity text-left"
           >
             <img 
               src={store?.logo || "https://i.postimg.cc/Wp9dFKRm/Adobe-Express-file.png"} 
               alt={`Logo ${store?.name || 'da Loja'}`} 
-              className="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded-full"
+              className="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded-xl"
               referrerPolicy="no-referrer"
             />
             <span className="hidden sm:block">{store?.name || 'C Store Angola'}</span>
@@ -90,18 +92,18 @@ export default function Header() {
           <div className="flex items-center gap-1 sm:gap-4">
             {isAdmin && (
               <Link 
-                to="/"
+                to={store?.slug && store.slug !== 'main' ? `/store/${store.slug}` : "/"}
                 className="hidden sm:flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-full transition-colors text-xs font-medium mr-2"
               >
                 Ver Loja
               </Link>
             )}
             <div className="relative group">
-              <button className="flex items-center gap-1 bg-white dark:bg-zinc-900 rounded-full px-3 py-1.5 border border-black/10 dark:border-white/10 text-xs font-medium text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+              <button className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-900 rounded-full px-3 py-1.5 border border-black/10 dark:border-white/10 text-xs font-medium text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                 <Globe className="w-3.5 h-3.5" />
                 {lang}
               </button>
-              <div className="absolute top-full right-0 mt-2 w-24 bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden">
+              <div className="absolute top-full right-0 mt-2 w-24 bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden">
                 {['PT', 'EN', 'FR'].map((l) => (
                   <button
                     key={l}

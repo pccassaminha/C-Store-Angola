@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product } from './StoreContext';
+import { Product, useStore } from './StoreContext';
 
 export interface CartItem {
   product: Product;
@@ -21,14 +21,41 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { store } = useStore();
+  const storeId = store?.id || localStorage.getItem('storeId') || 'default';
+  const cartKey = `cart_${storeId}`;
+
   const [items, setItems] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem('cart');
+    // Migrate old cart if it exists
+    const oldCart = localStorage.getItem('cart');
+    if (oldCart && cartKey === 'cart_7234568' && !localStorage.getItem('cart_7234568')) {
+      localStorage.setItem('cart_7234568', oldCart);
+      localStorage.removeItem('cart');
+    }
+    
+    const saved = localStorage.getItem(cartKey);
     return saved ? JSON.parse(saved) : [];
   });
+  const [currentCartKey, setCurrentCartKey] = useState(cartKey);
 
+  // Reset cart immediately when store changes (render-phase state update)
+  if (cartKey !== currentCartKey) {
+    // Migrate old cart if it exists
+    const oldCart = localStorage.getItem('cart');
+    if (oldCart && cartKey === 'cart_7234568' && !localStorage.getItem('cart_7234568')) {
+      localStorage.setItem('cart_7234568', oldCart);
+      localStorage.removeItem('cart');
+    }
+
+    const saved = localStorage.getItem(cartKey);
+    setItems(saved ? JSON.parse(saved) : []);
+    setCurrentCartKey(cartKey);
+  }
+
+  // Save cart when items change
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
-  }, [items]);
+    localStorage.setItem(currentCartKey, JSON.stringify(items));
+  }, [items, currentCartKey]);
 
   const addToCart = (product: Product, quantity: number) => {
     setItems(prev => {

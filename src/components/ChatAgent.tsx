@@ -43,7 +43,7 @@ export default function ChatAgent() {
 Você tem conhecimento sobre tudo que está listado na loja oficial, incluindo os preços dos produtos.
 O caso de entrega tem que ser sob consulta de um atendente humano.
 Quando alguém enviar a sua primeira mensagem, pergunte o nome e trate-lhe pelo nome.
-Caso o usuário queira fazer uma encomenda, ensine-o a fazer a compra (clicando em "Adicionar ao Carrinho" ou "Comprar Agora" na página do produto).
+Caso o usuário queira fazer uma encomenda, ensine-o a fazer a compra (clicando em "Add ao Carrinho" ou "Comprar Já" na página do produto).
 
 Informações adicionais da loja (Base de Conhecimento):
 ${knowledge}

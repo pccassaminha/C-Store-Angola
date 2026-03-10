@@ -20,7 +20,9 @@ import {
   Store,
   Globe,
   Moon,
-  Sun
+  Sun,
+  Facebook,
+  Share2
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useStore } from '../context/StoreContext';
@@ -75,7 +77,7 @@ function PurchasePopup({ productName }: { productName: string }) {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-20 sm:bottom-4 left-4 right-4 sm:right-auto z-50 bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 shadow-2xl rounded-xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 animate-in slide-in-from-bottom-5 fade-in duration-500 sm:max-w-sm">
+    <div className="fixed bottom-20 sm:bottom-4 left-4 right-4 sm:right-auto z-50 bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 shadow-2xl rounded-xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 animate-in slide-in-from-bottom-5 fade-in duration-500 sm:max-w-sm">
       <div className="bg-emerald-500/20 p-1.5 sm:p-2 rounded-full shrink-0">
         <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
       </div>
@@ -97,39 +99,8 @@ function PurchasePopup({ productName }: { productName: string }) {
 export default function ProductDetails() {
   const { slug, id } = useParams<{ slug: string; id: string }>();
   const storeContext = useStore();
-  const [storeInfo, setStoreInfo] = useState<any>(null);
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { lang } = storeContext;
+  const { store: storeInfo, products, isLoading: loading, lang } = storeContext;
   
-  useEffect(() => {
-    const fetchStoreData = async () => {
-      try {
-        const res = await fetch(`/api/storefront/${slug}`);
-        if (res.ok) {
-          const data = await res.json();
-          setStoreInfo(data.store);
-          setProducts(data.products);
-        } else {
-          setError('Store not found');
-        }
-      } catch (error) {
-        setError('An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (slug) {
-      fetchStoreData();
-    } else {
-      setStoreInfo(storeContext.store);
-      setProducts(storeContext.products);
-      setLoading(storeContext.isLoading);
-    }
-  }, [slug, storeContext.store, storeContext.products, storeContext.isLoading]);
-
   const product = products.find(p => p.id === id);
   
   const [selectedImage, setSelectedImage] = useState(0);
@@ -192,7 +163,7 @@ export default function ProductDetails() {
     );
   }
 
-  if (error || !product || product.status === 'inactive') {
+  if (!product || product.status === 'inactive') {
     return (
       <main className="pt-32 pb-20 flex-1 text-center">
         <h1 className="text-3xl font-bold mb-4">Produto não encontrado ou indisponível</h1>
@@ -250,7 +221,7 @@ export default function ProductDetails() {
               <img 
                 src={storeInfo?.logo || "https://i.postimg.cc/Wp9dFKRm/Adobe-Express-file.png"} 
                 alt={storeInfo?.name || 'Loja'} 
-                className="w-8 h-8 rounded-full object-cover shrink-0" 
+                className="w-8 h-8 rounded-xl object-cover shrink-0" 
                 referrerPolicy="no-referrer" 
               />
               <span className="font-semibold text-zinc-900 dark:text-white truncate max-w-[120px] sm:max-w-xs">
@@ -409,7 +380,7 @@ export default function ProductDetails() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center w-full">
-              <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-black/5 dark:border-white/10 p-1 w-full sm:w-auto justify-center sm:justify-start shrink-0">
+              <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-black/5 dark:border-white/10 p-1 w-full sm:w-auto justify-center sm:justify-start shrink-0">
                 <button 
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
                   className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
@@ -432,14 +403,14 @@ export default function ProductDetails() {
                   className="bg-zinc-800 dark:bg-zinc-800 hover:bg-zinc-700 dark:hover:bg-zinc-700 text-white font-semibold py-2.5 sm:py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-colors border border-black/10 dark:border-white/10 flex-1 text-center text-[13px] sm:text-sm truncate"
                 >
                   <ShoppingBag className="w-4 h-4 shrink-0" />
-                  <span className="truncate">Adicionar ao Carrinho</span>
+                  <span className="truncate">Add ao Carrinho</span>
                 </button>
                 <button 
                   onClick={handleBuyNow}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 sm:py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-900/20 flex-1 text-center text-[13px] sm:text-sm truncate"
                 >
                   <ShoppingCart className="w-4 h-4 shrink-0" />
-                  <span className="truncate">Comprar Agora</span>
+                  <span className="truncate">Comprar Já</span>
                 </button>
               </div>
             </div>
@@ -450,6 +421,29 @@ export default function ProductDetails() {
               <span className="flex items-center gap-1 whitespace-nowrap"><span className="text-xl">💵</span> Pagamento na entrega</span>
               <span className="text-zinc-300 dark:text-zinc-600 hidden sm:inline">|</span>
               <span className="flex items-center gap-1 whitespace-nowrap"><span className="text-xl">🛡️</span> Garantia de 7 dias</span>
+            </div>
+
+            {/* Social Sharing */}
+            <div className="mt-8 flex flex-col items-center justify-center w-full border-t border-black/5 dark:border-white/10 pt-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3 flex items-center gap-2">
+                <Share2 className="w-4 h-4" /> Partilhar este produto
+              </p>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Olha este produto: ${product.name} - ${window.location.href}`)}`, '_blank')}
+                  className="w-10 h-10 rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 flex items-center justify-center transition-colors"
+                  title="Partilhar no WhatsApp"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                  className="w-10 h-10 rounded-full bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 flex items-center justify-center transition-colors"
+                  title="Partilhar no Facebook"
+                >
+                  <Facebook className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -498,6 +492,34 @@ export default function ProductDetails() {
                 </ul>
               </div>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Generic Video Section */}
+      {product.videoUrl && (
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center border-t border-black/5 dark:border-white/10">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-12 text-zinc-900 dark:text-white">
+            Vídeo do Produto
+          </h2>
+          <div className="max-w-4xl mx-auto bg-zinc-50 dark:bg-[#111] rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-black/5 dark:border-white/5 shadow-sm dark:shadow-none">
+            <div className="rounded-xl sm:rounded-2xl overflow-hidden bg-black aspect-video w-full relative shadow-inner">
+              {product.videoUrl.includes('youtube.com') || product.videoUrl.includes('youtu.be') ? (
+                <iframe 
+                  src={product.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/').replace('youtube.com/shorts/', 'youtube.com/embed/')} 
+                  title="Vídeo do Produto" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen
+                  className="absolute top-0 left-0 w-full h-full"
+                ></iframe>
+              ) : (
+                <video 
+                  src={product.videoUrl} 
+                  controls 
+                  className="absolute top-0 left-0 w-full h-full object-contain"
+                ></video>
+              )}
+            </div>
           </div>
         </section>
       )}

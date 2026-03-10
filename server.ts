@@ -19,7 +19,9 @@ db.exec(`
     whatsapp TEXT,
     address TEXT,
     status TEXT NOT NULL DEFAULT 'pending',
-    owner_id INTEGER
+    owner_id INTEGER,
+    has_marquee INTEGER DEFAULT 1,
+    marquee_text TEXT
   );
   CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY,
@@ -60,11 +62,14 @@ try { db.exec('ALTER TABLE products ADD COLUMN detailedDesc TEXT'); } catch (e) 
 try { db.exec('ALTER TABLE products ADD COLUMN sales INTEGER DEFAULT 0'); } catch (e) {}
 try { db.exec('ALTER TABLE products ADD COLUMN reservations INTEGER DEFAULT 0'); } catch (e) {}
 try { db.exec('ALTER TABLE products ADD COLUMN store_id TEXT'); } catch (e) {}
+try { db.exec('ALTER TABLE products ADD COLUMN videoUrl TEXT'); } catch (e) {}
 try { db.exec('ALTER TABLE admins ADD COLUMN role TEXT DEFAULT "manager"'); } catch (e) {}
 try { db.exec('ALTER TABLE admins ADD COLUMN store_id TEXT'); } catch (e) {}
 try { db.exec('ALTER TABLE knowledge ADD COLUMN store_id TEXT'); } catch (e) {}
 try { db.exec('ALTER TABLE stores ADD COLUMN whatsapp TEXT'); } catch (e) {}
 try { db.exec('ALTER TABLE stores ADD COLUMN address TEXT'); } catch (e) {}
+try { db.exec('ALTER TABLE stores ADD COLUMN has_marquee INTEGER DEFAULT 1'); } catch (e) {}
+try { db.exec('ALTER TABLE stores ADD COLUMN marquee_text TEXT'); } catch (e) {}
 
 // Migration to change 'main' store ID to '7234568'
 try {
@@ -232,7 +237,7 @@ async function startServer() {
       } else if (admin.status === 'pending') {
         res.status(403).json({ error: 'Conta pendente de aprovação.' });
       } else {
-        res.status(403).json({ error: 'Conta rejeitada.' });
+        res.status(403).json({ error: 'A loja está bloqueada, contacte o suporte +244 956 394 712' });
       }
     } else {
       res.status(401).json({ error: 'Credenciais inválidas' });
@@ -290,7 +295,7 @@ async function startServer() {
   });
 
   app.get('/api/stores', (req, res) => {
-    const stores = db.prepare('SELECT id, name, slug, logo, whatsapp, address FROM stores WHERE status = ?').all('approved');
+    const stores = db.prepare('SELECT id, name, slug, logo, whatsapp, address, status FROM stores WHERE status != ?').all('pending');
     res.json(stores);
   });
 
@@ -406,7 +411,7 @@ async function startServer() {
   });
 
   app.get('/api/store/:id', (req, res) => {
-    const store = db.prepare('SELECT id, name, slug, logo, whatsapp, address FROM stores WHERE id = ?').get(req.params.id);
+    const store = db.prepare('SELECT id, name, slug, logo, whatsapp, address, has_marquee, marquee_text FROM stores WHERE id = ?').get(req.params.id);
     if (store) {
       res.json(store);
     } else {
@@ -415,9 +420,9 @@ async function startServer() {
   });
 
   app.post('/api/store/:id/settings', (req, res) => {
-    const { whatsapp, address, logo } = req.body;
+    const { whatsapp, address, logo, has_marquee, marquee_text } = req.body;
     try {
-      db.prepare('UPDATE stores SET whatsapp = ?, address = ?, logo = ? WHERE id = ?').run(whatsapp, address, logo, req.params.id);
+      db.prepare('UPDATE stores SET whatsapp = ?, address = ?, logo = ?, has_marquee = ?, marquee_text = ? WHERE id = ?').run(whatsapp, address, logo, has_marquee === undefined ? 1 : has_marquee, marquee_text || null, req.params.id);
       res.json({ success: true });
     } catch (e) {
       res.status(500).json({ error: 'Erro ao atualizar configurações' });
@@ -457,6 +462,20 @@ async function startServer() {
       res.json({ success: true });
     } catch (e) {
       res.status(500).json({ error: 'Erro ao rejeitar loja' });
+    }
+  });
+
+  app.delete('/api/stores/:id', (req, res) => {
+    const { id } = req.params;
+    try {
+      db.prepare('DELETE FROM products WHERE store_id = ?').run(id);
+      db.prepare('DELETE FROM orders WHERE store_id = ?').run(id);
+      db.prepare('DELETE FROM admins WHERE store_id = ?').run(id);
+      db.prepare('DELETE FROM stores WHERE id = ?').run(id);
+      res.json({ success: true });
+    } catch (e) {
+      console.error('Error deleting store:', e);
+      res.status(500).json({ error: 'Erro ao eliminar loja' });
     }
   });
 
@@ -533,10 +552,10 @@ async function startServer() {
   });
 
   app.post('/api/products', (req, res) => {
-    const { id, name, shortDesc, price, image, images, fullDesc, detailedDesc = '', status = 'active', hasProgressiveDiscount = false, specs = [], features = [], storeId } = req.body;
+    const { id, name, shortDesc, price, image, images, fullDesc, detailedDesc = '', status = 'active', hasProgressiveDiscount = false, specs = [], features = [], storeId, videoUrl = '' } = req.body;
     try {
-      db.prepare('INSERT INTO products (id, store_id, name, shortDesc, price, image, images, fullDesc, detailedDesc, status, hasProgressiveDiscount, specs, features, sales, reservations) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)').run(
-        id, storeId || '7234568', name, shortDesc, price, image, JSON.stringify(images), fullDesc, detailedDesc, status, hasProgressiveDiscount ? 1 : 0, JSON.stringify(specs), JSON.stringify(features)
+      db.prepare('INSERT INTO products (id, store_id, name, shortDesc, price, image, images, fullDesc, detailedDesc, status, hasProgressiveDiscount, specs, features, videoUrl, sales, reservations) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)').run(
+        id, storeId || '7234568', name, shortDesc, price, image, JSON.stringify(images), fullDesc, detailedDesc, status, hasProgressiveDiscount ? 1 : 0, JSON.stringify(specs), JSON.stringify(features), videoUrl
       );
       res.json({ success: true });
     } catch (e) {
@@ -546,10 +565,10 @@ async function startServer() {
   });
 
   app.put('/api/products/:id', (req, res) => {
-    const { name, shortDesc, price, image, images, fullDesc, detailedDesc = '', status, hasProgressiveDiscount, specs, features } = req.body;
+    const { name, shortDesc, price, image, images, fullDesc, detailedDesc = '', status, hasProgressiveDiscount, specs, features, videoUrl = '' } = req.body;
     try {
-      db.prepare('UPDATE products SET name = ?, shortDesc = ?, price = ?, image = ?, images = ?, fullDesc = ?, detailedDesc = ?, status = ?, hasProgressiveDiscount = ?, specs = ?, features = ? WHERE id = ?').run(
-        name, shortDesc, price, image, JSON.stringify(images), fullDesc, detailedDesc, status, hasProgressiveDiscount ? 1 : 0, JSON.stringify(specs), JSON.stringify(features), req.params.id
+      db.prepare('UPDATE products SET name = ?, shortDesc = ?, price = ?, image = ?, images = ?, fullDesc = ?, detailedDesc = ?, status = ?, hasProgressiveDiscount = ?, specs = ?, features = ?, videoUrl = ? WHERE id = ?').run(
+        name, shortDesc, price, image, JSON.stringify(images), fullDesc, detailedDesc, status, hasProgressiveDiscount ? 1 : 0, JSON.stringify(specs), JSON.stringify(features), videoUrl, req.params.id
       );
       res.json({ success: true });
     } catch (e) {

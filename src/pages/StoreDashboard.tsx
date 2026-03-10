@@ -142,12 +142,12 @@ export default function StoreDashboard() {
               {storeInfo?.name} Dashboard
             </h1>
             <Link 
-              to={`/store/${storeInfo?.slug}`} 
+              to={storeInfo?.slug && storeInfo.slug !== 'main' ? `/store/${storeInfo.slug}` : "/"} 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 mt-3 text-sm font-medium ml-[60px]"
             >
-              View Public Store <ExternalLink size={14} />
+              Ver Loja <ExternalLink size={14} />
             </Link>
           </div>
           <button

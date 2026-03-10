@@ -6,14 +6,29 @@ import Header from '../components/Header';
 
 export default function Home() {
   const { slug } = useParams<{ slug: string }>();
-  const { products, isLoading, store } = useStore();
+  const { products, isLoading, store, lang } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filtra apenas os produtos que estão ativos e correspondem à pesquisa
   const filteredProducts = products.filter(p => 
-    p.active !== false && 
+    (p.status === 'active' || !p.status) && 
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const t = {
+    welcome: lang === 'EN' ? 'Welcome to' : lang === 'FR' ? 'Bienvenue à' : 'Bem-vindo à',
+    subtitle: lang === 'EN' ? 'Find the best products with guaranteed quality and fast delivery.' : lang === 'FR' ? 'Trouvez les meilleurs produits avec une qualité garantie et une livraison rapide.' : 'Encontre os melhores produtos com qualidade garantida e entrega rápida.',
+    searchPlaceholder: lang === 'EN' ? 'Search products...' : lang === 'FR' ? 'Rechercher des produits...' : 'Pesquisar produtos...',
+    noProducts: lang === 'EN' ? 'No products found with that name.' : lang === 'FR' ? 'Aucun produit trouvé avec ce nom.' : 'Nenhum produto encontrado com esse nome.',
+    details: lang === 'EN' ? 'View Details' : lang === 'FR' ? 'Voir les détails' : 'Ver Detalhes',
+    delivery: lang === 'EN' ? 'Fast Delivery' : lang === 'FR' ? 'Livraison Rapide' : 'Entrega Rápida',
+    deliveryDesc: lang === 'EN' ? 'Receive your orders quickly and safely.' : lang === 'FR' ? 'Recevez vos commandes rapidement et en toute sécurité.' : 'Receba suas encomendas com rapidez e segurança.',
+    quality: lang === 'EN' ? 'Quality Guarantee' : lang === 'FR' ? 'Garantie de Qualité' : 'Garantia de Qualidade',
+    qualityDesc: lang === 'EN' ? 'Tested products with factory warranty.' : lang === 'FR' ? 'Produits testés avec garantie d\'usine.' : 'Produtos testados e com garantia de fábrica.',
+    support: lang === 'EN' ? '24/7 Support' : lang === 'FR' ? 'Support 24/7' : 'Suporte 24/7',
+    supportDesc: lang === 'EN' ? 'Our team is always ready to help.' : lang === 'FR' ? 'Notre équipe est toujours prête à vous aider.' : 'Nossa equipe está sempre pronta para ajudar.',
+    developedBy: lang === 'EN' ? 'Developed by GRUPO CASSAMINHA' : lang === 'FR' ? 'Développé par GRUPO CASSAMINHA' : 'Desenvolvido pelo GRUPO CASSAMINHA'
+  };
 
   if (isLoading) {
     return (
@@ -32,11 +47,11 @@ export default function Home() {
       <main className="pt-24 pb-10 flex-1 flex flex-col min-h-screen">
         {/* Hero Section with Search */}
       <section className="max-w-7xl mx-auto px-6 py-12 md:py-20 text-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-          Bem-vindo à <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-emerald-400">{store?.name || 'C Store Angola'}</span>
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-zinc-900 dark:text-white">
+          {t.welcome} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-emerald-400">{store?.name || 'C Store Angola'}</span>
         </h1>
-        <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-12">
-          Encontre os melhores produtos com qualidade garantida e entrega rápida.
+        <p className="text-zinc-600 dark:text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-12">
+          {t.subtitle}
         </p>
         
         <div className="max-w-xl mx-auto mb-10 relative">
@@ -45,15 +60,15 @@ export default function Home() {
           </div>
           <input 
             type="text" 
-            placeholder="Pesquisar produtos..." 
+            placeholder={t.searchPlaceholder} 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-14 pr-6 py-4 bg-zinc-900/80 border border-white/10 rounded-full focus:outline-none focus:border-emerald-500/50 transition-colors text-white shadow-inner"
+            className="w-full pl-14 pr-6 py-4 bg-zinc-50 dark:bg-zinc-900/80 border border-black/10 dark:border-white/10 rounded-full focus:outline-none focus:border-emerald-500/50 transition-colors text-zinc-900 dark:text-white shadow-inner"
           />
         </div>
 
         {filteredProducts.length === 0 && searchQuery && (
-          <p className="text-zinc-500 mt-8">Nenhum produto encontrado com esse nome.</p>
+          <p className="text-zinc-500 mt-8">{t.noProducts}</p>
         )}
       </section>
 
@@ -62,8 +77,8 @@ export default function Home() {
         <section id="produtos" className="max-w-7xl mx-auto px-6 pb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-zinc-900 border border-white/10 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-colors group flex flex-col">
-                <Link to={slug ? `/store/${slug}/produto/${product.id}` : `/produto/${product.id}`} className="block aspect-square overflow-hidden bg-zinc-100 dark:bg-zinc-800 relative flex items-center justify-center">
+              <div key={product.id} className="bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-colors group flex flex-col shadow-sm dark:shadow-none">
+                <Link to={slug ? `/store/${slug}/produto/${product.id}` : `/produto/${product.id}`} className="block aspect-square overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative flex items-center justify-center">
                   <img 
                     src={product.image} 
                     alt={product.name} 
@@ -72,15 +87,15 @@ export default function Home() {
                   />
                 </Link>
                 <div className="p-6 flex flex-col flex-1">
-                  <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                  <p className="text-zinc-400 text-sm mb-6 flex-1">{product.shortDesc}</p>
+                  <h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-white">{product.name}</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-6 flex-1">{product.shortDesc}</p>
                   <div className="flex items-center justify-between mt-auto">
-                    <span className="text-2xl font-bold text-emerald-400">{product.price}</span>
+                    <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{product.price}</span>
                     <Link 
                       to={slug ? `/store/${slug}/produto/${product.id}` : `/produto/${product.id}`}
-                      className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                      className="bg-zinc-100 hover:bg-zinc-200 dark:bg-white/10 dark:hover:bg-white/20 text-zinc-900 dark:text-white px-4 py-2 rounded-xl font-medium transition-colors"
                     >
-                      Ver Detalhes
+                      {t.details}
                     </Link>
                   </div>
                 </div>
@@ -91,29 +106,29 @@ export default function Home() {
       )}
 
       {/* Features - Moved to bottom */}
-      <section className="border-y border-white/10 bg-zinc-900/50 mt-auto">
+      <section className="border-y border-black/5 dark:border-white/10 bg-zinc-50 dark:bg-zinc-900/50 mt-auto">
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="bg-emerald-500/10 p-4 rounded-full">
-                <Truck className="w-8 h-8 text-emerald-400" />
+              <div className="bg-emerald-100 dark:bg-emerald-500/10 p-4 rounded-full">
+                <Truck className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="font-semibold text-lg">Entrega Rápida</h3>
-              <p className="text-zinc-400 text-sm">Receba suas encomendas com rapidez e segurança.</p>
+              <h3 className="font-semibold text-lg text-zinc-900 dark:text-white">{t.delivery}</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm">{t.deliveryDesc}</p>
             </div>
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="bg-emerald-500/10 p-4 rounded-full">
-                <ShieldCheck className="w-8 h-8 text-emerald-400" />
+              <div className="bg-emerald-100 dark:bg-emerald-500/10 p-4 rounded-full">
+                <ShieldCheck className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="font-semibold text-lg">Garantia de Qualidade</h3>
-              <p className="text-zinc-400 text-sm">Produtos testados e com garantia de fábrica.</p>
+              <h3 className="font-semibold text-lg text-zinc-900 dark:text-white">{t.quality}</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm">{t.qualityDesc}</p>
             </div>
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="bg-emerald-500/10 p-4 rounded-full">
-                <Clock className="w-8 h-8 text-emerald-400" />
+              <div className="bg-emerald-100 dark:bg-emerald-500/10 p-4 rounded-full">
+                <Clock className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="font-semibold text-lg">Suporte 24/7</h3>
-              <p className="text-zinc-400 text-sm">Nossa equipe está sempre pronta para ajudar.</p>
+              <h3 className="font-semibold text-lg text-zinc-900 dark:text-white">{t.support}</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm">{t.supportDesc}</p>
             </div>
           </div>
         </div>
@@ -123,7 +138,7 @@ export default function Home() {
       <footer className="py-8 bg-zinc-950">
         <div className="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center gap-6">
           <p className="text-zinc-500 text-xs sm:text-sm text-center max-w-4xl">
-            C Store Angola — Tecnologias que conectam você ao mundo. | GRUPO CASSAMINHA - COMÉRCIO & PRESTAÇÃO DE SERVIÇOS, (SU), LDA. NIF: 500286821
+            APP Desenvolvida pelo GRUPO CASSAMINHA | NIF: 500286821
           </p>
           <Link 
             to="/admin" 

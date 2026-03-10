@@ -45,7 +45,7 @@ export default function Admin() {
   
   // Stores state
   const [pendingStores, setPendingStores] = useState<{id: string, name: string, slug: string, status: string, owner_email: string}[]>([]);
-  const [allStores, setAllStores] = useState<{id: string, name: string, slug: string, logo: string}[]>([]);
+  const [allStores, setAllStores] = useState<{id: string, name: string, slug: string, logo: string, status: string}[]>([]);
 
   // Missing state variables
   const [profileEmail, setProfileEmail] = useState('');
@@ -55,6 +55,8 @@ export default function Admin() {
   const [storeWhatsapp, setStoreWhatsapp] = useState('');
   const [storeAddress, setStoreAddress] = useState('');
   const [storeLogo, setStoreLogo] = useState('');
+  const [hasMarquee, setHasMarquee] = useState(1);
+  const [marqueeText, setMarqueeText] = useState('');
   const [showWhatsappConfirm, setShowWhatsappConfirm] = useState(false);
   const [originalWhatsapp, setOriginalWhatsapp] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -78,7 +80,8 @@ export default function Admin() {
     status: 'active',
     hasProgressiveDiscount: false,
     specs: [] as {label: string, value: string}[],
-    features: [] as string[]
+    features: [] as string[],
+    videoUrl: ''
   });
 
   const [newManagerEmail, setNewManagerEmail] = useState('');
@@ -118,6 +121,8 @@ export default function Admin() {
         setStoreAddress(data.address || '');
         setOriginalWhatsapp(data.whatsapp || '');
         setStoreLogo(data.logo || '');
+        setHasMarquee(data.has_marquee !== undefined ? data.has_marquee : 1);
+        setMarqueeText(data.marquee_text || '');
       }
     } catch (e) {
       console.error('Failed to fetch store settings');
@@ -336,7 +341,8 @@ export default function Admin() {
       status: product.status || 'active',
       hasProgressiveDiscount: product.hasProgressiveDiscount || false,
       specs: product.specs || [],
-      features: product.features || []
+      features: product.features || [],
+      videoUrl: product.videoUrl || ''
     });
     setIsAddingProduct(true);
   };
@@ -471,7 +477,7 @@ export default function Admin() {
       const res = await fetch(`/api/store/${storeId}/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ whatsapp: storeWhatsapp, address: storeAddress, logo: storeLogo })
+        body: JSON.stringify({ whatsapp: storeWhatsapp, address: storeAddress, logo: storeLogo, has_marquee: hasMarquee, marquee_text: marqueeText })
       });
       
       if (res.ok) {
@@ -521,7 +527,7 @@ export default function Admin() {
   if (!isLoggedIn) {
     return (
       <main className="pt-32 pb-20 flex-1 flex items-center justify-center px-6">
-        <div className="bg-zinc-900 border border-white/10 rounded-2xl p-8 w-full max-w-md">
+        <div className="bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-2xl p-8 w-full max-w-md shadow-xl dark:shadow-none">
           <div className="flex items-center justify-center gap-3 mb-8">
             <Settings className="w-8 h-8 text-emerald-500" />
             <h1 className="text-2xl font-bold">{isRegistering ? 'Criar Conta' : 'Área Administrativa'}</h1>
@@ -540,11 +546,11 @@ export default function Admin() {
             )}
             {isRegistering && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Tipo de Registro</label>
+                <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Tipo de Registro</label>
                 <select 
                   value={registerType}
                   onChange={e => setRegisterType(e.target.value as 'new_store' | 'manager')}
-                  className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   disabled
                 >
                   <option value="new_store">Criar uma nova loja</option>
@@ -555,54 +561,54 @@ export default function Admin() {
             {isRegistering && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-1">Nome da Loja</label>
+                  <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Nome da Loja</label>
                   <input 
                     type="text" 
                     value={storeName}
                     onChange={e => setStoreName(e.target.value)}
-                    className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                     required={isRegistering}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-1">URL da Loja (Slug)</label>
+                  <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">URL da Loja (Slug)</label>
                   <input 
                     type="text" 
                     value={storeSlug}
                     onChange={e => setStoreSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
                     placeholder="minha-loja"
-                    className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                     required={isRegistering}
                   />
-                  <p className="text-xs text-zinc-500 mt-1">Apenas letras minúsculas, números e hífens.</p>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-1">Apenas letras minúsculas, números e hífens.</p>
                 </div>
               </>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-1">Email</label>
+              <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Email</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-1">Senha</label>
+              <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Senha</label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 pr-12"
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 pr-12"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-300"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -627,12 +633,12 @@ export default function Admin() {
                 {isRegistering ? 'Já tenho uma conta. Fazer login.' : 'Ainda não tenho conta. Criar conta.'}
               </button>
             </div>
-            <p className="text-xs text-zinc-500 text-center mt-4">
+            <p className="text-xs text-zinc-600 dark:text-zinc-500 text-center mt-4">
               Acesso restrito a administradores da C Store Angola.
             </p>
             <div className="mt-6 pt-6 border-t border-white/10 flex justify-center">
               <Link 
-                to="/"
+                to={store?.slug && store.slug !== 'main' ? `/store/${store.slug}` : "/"}
                 className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -654,11 +660,11 @@ export default function Admin() {
               <Settings className="w-8 h-8 text-emerald-500" />
               Painel de Administração
             </h1>
-            <p className="text-zinc-500 dark:text-zinc-400 mt-1">Faça a gestão dos produtos e do conhecimento do assistente virtual.</p>
+            <p className="text-zinc-600 dark:text-zinc-400 mt-1">Faça a gestão dos produtos e do conhecimento do assistente virtual.</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <Link 
-              to="/"
+              to={store?.slug && store.slug !== 'main' ? `/store/${store.slug}` : "/"}
               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl transition-colors text-sm font-medium"
             >
               <ExternalLink className="w-4 h-4" />
@@ -707,14 +713,14 @@ export default function Admin() {
         <div className="flex gap-2 mb-8 border-b border-black/10 dark:border-white/10 pb-px overflow-x-auto">
           <button 
             onClick={() => setActiveTab('products')}
-            className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'products' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
+            className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'products' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
           >
             <Package className="w-4 h-4" />
             Produtos
           </button>
           <button 
             onClick={() => setActiveTab('knowledge')}
-            className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'knowledge' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
+            className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'knowledge' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
           >
             <FileText className="w-4 h-4" />
             Base de Conhecimento (Bot)
@@ -722,7 +728,7 @@ export default function Admin() {
           {adminRole === 'superadmin' && (
             <button 
               onClick={() => setActiveTab('stores')}
-              className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'stores' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
+              className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'stores' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
             >
               <Settings className="w-4 h-4" />
               Lojas
@@ -736,7 +742,7 @@ export default function Admin() {
           {(adminRole === 'superadmin' || adminRole === 'store_admin') && (
             <button 
               onClick={() => setActiveTab('store_settings')}
-              className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'store_settings' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
+              className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'store_settings' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
             >
               <Settings className="w-4 h-4" />
               Configurações da Loja
@@ -744,7 +750,7 @@ export default function Admin() {
           )}
           <button 
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'profile' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
+            className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'profile' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
           >
             <Settings className="w-4 h-4" />
             Meu Perfil
@@ -786,19 +792,19 @@ export default function Admin() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-zinc-400 mb-1">ID do Produto (ex: fone-bluetooth-x1)</label>
-                      <input type="text" required disabled={!!editingProductId} value={newProduct.id} onChange={e => setNewProduct({...newProduct, id: e.target.value})} className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2 text-white disabled:opacity-50" />
+                      <input type="text" required disabled={!!editingProductId} value={newProduct.id} onChange={e => setNewProduct({...newProduct, id: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white disabled:opacity-50" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-zinc-400 mb-1">Nome do Produto</label>
-                      <input type="text" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2 text-white" />
+                      <input type="text" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-zinc-400 mb-1">Preço (ex: 35.000 Kz)</label>
-                      <input type="text" required value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2 text-white" />
+                      <input type="text" required value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-zinc-400 mb-1">Status</label>
-                      <select value={newProduct.status} onChange={e => setNewProduct({...newProduct, status: e.target.value})} className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2 text-white">
+                      <select value={newProduct.status} onChange={e => setNewProduct({...newProduct, status: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white">
                         <option value="active">Ativo</option>
                         <option value="inactive">Inativo</option>
                       </select>
@@ -817,17 +823,17 @@ export default function Admin() {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-zinc-400 mb-1">Descrição Curta (Aparece no card e abaixo do preço)</label>
-                      <input type="text" required value={newProduct.shortDesc} onChange={e => setNewProduct({...newProduct, shortDesc: e.target.value})} className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2 text-white" />
+                      <input type="text" required value={newProduct.shortDesc} onChange={e => setNewProduct({...newProduct, shortDesc: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white" />
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-zinc-400 mb-1">Descrição Detalhada (Parágrafo acima das qualidades)</label>
-                      <textarea rows={3} value={newProduct.detailedDesc} onChange={e => setNewProduct({...newProduct, detailedDesc: e.target.value})} className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2 text-white resize-none" />
+                      <textarea rows={3} value={newProduct.detailedDesc} onChange={e => setNewProduct({...newProduct, detailedDesc: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white resize-none" />
                     </div>
                     
                     {/* Qualidades / Features */}
-                    <div className="md:col-span-2 p-4 bg-zinc-950 rounded-xl border border-white/5">
+                    <div className="md:col-span-2 p-4 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-black/5 dark:border-white/5">
                       <div className="flex justify-between items-center mb-2">
-                        <label className="block text-sm font-medium text-zinc-400">Qualidades do Produto (Símbolos Verdes de Verificação)</label>
+                        <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">Qualidades do Produto (Símbolos Verdes de Verificação)</label>
                         <button type="button" onClick={() => setNewProduct({...newProduct, features: [...newProduct.features, '']})} className="text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 px-2 py-1 rounded transition-colors">
                           + Adicionar Qualidade
                         </button>
@@ -839,7 +845,7 @@ export default function Admin() {
                               const newFeatures = [...newProduct.features];
                               newFeatures[idx] = e.target.value;
                               setNewProduct({...newProduct, features: newFeatures});
-                            }} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white" />
+                            }} className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-white" />
                             <button type="button" onClick={() => {
                               const newFeatures = newProduct.features.filter((_, i) => i !== idx);
                               setNewProduct({...newProduct, features: newFeatures});
@@ -849,16 +855,16 @@ export default function Admin() {
                           </div>
                         ))}
                         {newProduct.features.length === 0 && (
-                          <p className="text-xs text-zinc-500 italic">Nenhuma qualidade adicionada. Clique no botão acima para adicionar.</p>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-500 italic">Nenhuma qualidade adicionada. Clique no botão acima para adicionar.</p>
                         )}
                       </div>
                     </div>
 
                     {/* Especificações Técnicas */}
-                    <div className="md:col-span-2 p-4 bg-zinc-950 rounded-xl border border-white/5">
+                    <div className="md:col-span-2 p-4 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-black/5 dark:border-white/5">
                       <div className="flex justify-between items-center mb-2">
-                        <label className="block text-sm font-medium text-zinc-400">Especificações Técnicas</label>
-                        <button type="button" onClick={() => setNewProduct({...newProduct, specs: [...newProduct.specs, {label: '', value: ''}]})} className="text-xs bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded text-white transition-colors">
+                        <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">Especificações Técnicas</label>
+                        <button type="button" onClick={() => setNewProduct({...newProduct, specs: [...newProduct.specs, {label: '', value: ''}]})} className="text-xs bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 px-2 py-1 rounded text-zinc-900 dark:text-white transition-colors">
                           + Adicionar Especificação
                         </button>
                       </div>
@@ -869,12 +875,12 @@ export default function Admin() {
                               const newSpecs = [...newProduct.specs];
                               newSpecs[idx].label = e.target.value;
                               setNewProduct({...newProduct, specs: newSpecs});
-                            }} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white" />
+                            }} className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-white" />
                             <input type="text" placeholder="Valor (ex: 500mAh)" value={spec.value} onChange={e => {
                               const newSpecs = [...newProduct.specs];
                               newSpecs[idx].value = e.target.value;
                               setNewProduct({...newProduct, specs: newSpecs});
-                            }} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white" />
+                            }} className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm text-zinc-900 dark:text-white" />
                             <button type="button" onClick={() => {
                               const newSpecs = newProduct.specs.filter((_, i) => i !== idx);
                               setNewProduct({...newProduct, specs: newSpecs});
@@ -884,18 +890,18 @@ export default function Admin() {
                           </div>
                         ))}
                         {newProduct.specs.length === 0 && (
-                          <p className="text-xs text-zinc-500 italic">Nenhuma especificação adicionada.</p>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-500 italic">Nenhuma especificação adicionada.</p>
                         )}
                       </div>
                     </div>
                     
                     {/* Imagem Principal */}
-                    <div className="md:col-span-2 p-4 bg-zinc-950 rounded-xl border border-white/5">
-                      <label className="block text-sm font-medium text-zinc-400 mb-2">Imagem Principal</label>
+                    <div className="md:col-span-2 p-4 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-black/5 dark:border-white/5">
+                      <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">Imagem Principal</label>
                       <div className="flex gap-4 items-start">
                         <div className="flex-1">
-                          <input type="text" placeholder="URL da imagem (ex: https://...)" value={newProduct.image} onChange={e => setNewProduct({...newProduct, image: e.target.value})} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-white mb-2" />
-                          <div className="flex items-center gap-2 text-sm text-zinc-500">
+                          <input type="text" placeholder="URL da imagem (ex: https://...)" value={newProduct.image} onChange={e => setNewProduct({...newProduct, image: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white mb-2" />
+                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-500">
                             <span>ou</span>
                             <label className="cursor-pointer text-blue-400 hover:text-blue-300 flex items-center gap-1">
                               <ImageIcon className="w-4 h-4" />
@@ -911,10 +917,10 @@ export default function Admin() {
                     </div>
 
                     {/* Imagens da Galeria */}
-                    <div className="md:col-span-2 p-4 bg-zinc-950 rounded-xl border border-white/5">
-                      <label className="block text-sm font-medium text-zinc-400 mb-2">Galeria de Imagens (Uma URL por linha)</label>
-                      <textarea rows={3} placeholder="https://...\nhttps://..." value={newProduct.images} onChange={e => setNewProduct({...newProduct, images: e.target.value})} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-white resize-none mb-2" />
-                      <div className="flex items-center gap-2 text-sm text-zinc-500">
+                    <div className="md:col-span-2 p-4 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-black/5 dark:border-white/5">
+                      <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">Galeria de Imagens (Uma URL por linha)</label>
+                      <textarea rows={3} placeholder="https://...\nhttps://..." value={newProduct.images} onChange={e => setNewProduct({...newProduct, images: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white resize-none mb-2" />
+                      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-500">
                         <span>ou</span>
                         <label className="cursor-pointer text-blue-400 hover:text-blue-300 flex items-center gap-1">
                           <ImageIcon className="w-4 h-4" />
@@ -922,6 +928,19 @@ export default function Admin() {
                           <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'images')} />
                         </label>
                       </div>
+                    </div>
+
+                    {/* Vídeo do Produto */}
+                    <div className="md:col-span-2 p-4 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-black/5 dark:border-white/5">
+                      <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Link do Vídeo (Opcional - YouTube ou MP4)</label>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-500 mb-3">Se preenchido, criará uma seção de vídeo abaixo das informações principais.</p>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: https://www.youtube.com/watch?v=... ou https://.../video.mp4" 
+                        value={newProduct.videoUrl} 
+                        onChange={e => setNewProduct({...newProduct, videoUrl: e.target.value})} 
+                        className="w-full bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white" 
+                      />
                     </div>
                   </div>
                   <div className="flex justify-end pt-4">
@@ -935,7 +954,7 @@ export default function Admin() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map(p => (
-                <div key={p.id} className={`bg-white dark:bg-zinc-900/50 border border-black/5 dark:border-white/5 rounded-2xl p-4 flex gap-4 items-center shadow-sm dark:shadow-none ${p.status === 'inactive' ? 'opacity-50' : ''}`}>
+                <div key={p.id} className={`bg-white dark:bg-zinc-900 border border-black/5 dark:border-white/5 rounded-2xl p-4 flex gap-4 items-center shadow-sm dark:shadow-none ${p.status === 'inactive' ? 'opacity-50' : ''}`}>
                   <img src={p.image} alt={p.name} className="w-16 h-16 object-cover rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-sm truncate text-zinc-900 dark:text-white">{p.name}</h3>
@@ -993,7 +1012,7 @@ export default function Admin() {
                   Zerar Ranking
                 </button>
               </div>
-              <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-8">
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-8">
                 Os produtos mais reservados e comprados pelos clientes.
               </p>
               
@@ -1017,7 +1036,7 @@ export default function Admin() {
                         index === 0 ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-500' : 
                         index === 1 ? 'bg-zinc-200 dark:bg-zinc-300/20 text-zinc-600 dark:text-zinc-300' : 
                         index === 2 ? 'bg-amber-600/20 text-amber-600' : 
-                        'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
+                        'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-500'
                       }`}>
                         {index + 1}
                       </div>
@@ -1029,11 +1048,11 @@ export default function Admin() {
                     </div>
                     <div className="flex gap-6 w-full sm:w-auto mt-2 sm:mt-0">
                       <div className="text-center">
-                        <p className="text-xs text-zinc-500 mb-1">Vendas</p>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-500 mb-1">Vendas</p>
                         <p className="font-semibold text-zinc-900 dark:text-zinc-200">{p.sales}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xs text-zinc-500 mb-1">Reservas</p>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-500 mb-1">Reservas</p>
                         <p className="font-semibold text-zinc-900 dark:text-zinc-200">{p.reservations}</p>
                       </div>
                     </div>
@@ -1048,7 +1067,7 @@ export default function Admin() {
         {activeTab === 'knowledge' && (
           <div className="bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-none">
             <h2 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-white">Base de Conhecimento do Assistente</h2>
-            <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6">
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-6">
               Escreva aqui todas as informações adicionais que o assistente virtual deve saber para responder aos clientes. 
               (Ex: Políticas de troca, horários de funcionamento, regras de entrega, etc).
             </p>
@@ -1079,14 +1098,14 @@ export default function Admin() {
           <div className="space-y-6">
             <div className="bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-none">
               <h2 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-white">Pedidos de Novas Lojas</h2>
-              <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6">
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-6">
                 Aprove ou rejeite solicitações de criação de novas lojas.
               </p>
               
               {pendingStores.length === 0 ? (
                 <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-950/50 rounded-xl border border-black/5 dark:border-white/5">
                   <Settings className="w-12 h-12 text-zinc-400 dark:text-zinc-600 mx-auto mb-3" />
-                  <p className="text-zinc-500 dark:text-zinc-400">Não há pedidos de novas lojas pendentes.</p>
+                  <p className="text-zinc-600 dark:text-zinc-400">Não há pedidos de novas lojas pendentes.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1098,7 +1117,7 @@ export default function Admin() {
                         </div>
                         <div>
                           <p className="font-medium text-zinc-900 dark:text-white">{store.name}</p>
-                          <p className="text-xs text-zinc-500">Slug: {store.slug} | Dono: {store.owner_email}</p>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-500">Slug: {store.slug} | Dono: {store.owner_email}</p>
                         </div>
                       </div>
                       <div className="flex gap-2 w-full sm:w-auto">
@@ -1155,18 +1174,70 @@ export default function Admin() {
                 {allStores.map(store => (
                   <div key={store.id} className="bg-zinc-50 dark:bg-zinc-950 border border-black/5 dark:border-white/5 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                        <Settings className="w-5 h-5" />
+                      <div className={`p-2 rounded-full ${store.status === 'approved' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-600 dark:text-red-400'}`}>
+                        <Store className="w-5 h-5" />
                       </div>
                       <div>
                         <p className="font-medium text-zinc-900 dark:text-white">{store.name}</p>
                         <div className="flex items-center gap-2">
-                          <p className="text-xs text-zinc-500">Slug: {store.slug}</p>
-                          <span className="text-xs text-zinc-300 dark:text-zinc-600">•</span>
-                          <p className="text-xs text-zinc-500">ID: {store.id}</p>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-500">Slug: {store.slug}</p>
+                          <span className="text-xs text-zinc-400 dark:text-zinc-600">•</span>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-500">ID: {store.id}</p>
+                          <span className="text-xs text-zinc-400 dark:text-zinc-600">•</span>
+                          <p className={`text-xs font-medium ${store.status === 'approved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {store.status === 'approved' ? 'Ativa' : 'Desativada'}
+                          </p>
                         </div>
                       </div>
                     </div>
+                    {store.id !== '7234568' && (
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <button 
+                          onClick={async () => {
+                            const action = store.status === 'approved' ? 'desativar' : 'ativar';
+                            if (window.confirm(`Deseja realmente ${action} a loja ${store.name}?`)) {
+                              try {
+                                const endpoint = store.status === 'approved' ? '/api/stores/reject' : '/api/stores/approve';
+                                await fetch(endpoint, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ id: store.id })
+                                });
+                                fetchAllStores();
+                                toast.success(`Loja ${action === 'ativar' ? 'ativada' : 'desativada'} com sucesso!`);
+                              } catch (e) {
+                                toast.error(`Erro ao ${action} loja`);
+                              }
+                            }
+                          }}
+                          className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            store.status === 'approved' 
+                              ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/30' 
+                              : 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30'
+                          }`}
+                        >
+                          {store.status === 'approved' ? 'Desativar' : 'Ativar'}
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            if (window.confirm(`Deseja realmente eliminar a loja ${store.name}? Esta ação não pode ser desfeita.`)) {
+                              try {
+                                await fetch(`/api/stores/${store.id}`, {
+                                  method: 'DELETE'
+                                });
+                                fetchAllStores();
+                                toast.success('Loja eliminada com sucesso!');
+                              } catch (e) {
+                                toast.error('Erro ao eliminar loja');
+                              }
+                            }
+                          }}
+                          className="flex-1 sm:flex-none px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-red-600 dark:text-red-400 text-sm font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1181,9 +1252,9 @@ export default function Admin() {
               <h2 className="text-xl font-semibold mb-6 text-zinc-900 dark:text-white">Configurações da Loja</h2>
               
               <div className="mb-8 p-4 bg-zinc-50 dark:bg-zinc-950 border border-black/5 dark:border-white/5 rounded-xl">
-                <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">ID da Loja</h3>
+                <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">ID da Loja</h3>
                 <div className="flex items-center gap-3">
-                  <code className="flex-1 bg-white dark:bg-zinc-900 px-4 py-3 rounded-lg border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white font-mono text-lg">
+                  <code className="flex-1 bg-zinc-50 dark:bg-zinc-900 px-4 py-3 rounded-lg border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white font-mono text-lg">
                     {getStoreId()}
                   </code>
                   <button
@@ -1211,7 +1282,7 @@ export default function Admin() {
                 )}
                 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">URL da Logo da Loja</label>
+                  <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">URL da Logo da Loja</label>
                   <input 
                     type="text" 
                     value={storeLogo}
@@ -1219,7 +1290,7 @@ export default function Admin() {
                     placeholder="https://exemplo.com/logo.png"
                     className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   />
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-1">
                     Insira o link direto para a imagem da logo da sua loja.
                   </p>
                   {storeLogo && (
@@ -1230,8 +1301,39 @@ export default function Admin() {
                 </div>
 
                 <div>
+                  <label className="flex items-center gap-3 cursor-pointer p-4 bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl">
+                    <input 
+                      type="checkbox" 
+                      checked={hasMarquee === 1}
+                      onChange={e => setHasMarquee(e.target.checked ? 1 : 0)}
+                      className="w-5 h-5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <div>
+                      <span className="block text-sm font-medium text-zinc-900 dark:text-white">Exibir Faixa Promocional no Topo</span>
+                      <span className="block text-xs text-zinc-600 dark:text-zinc-500">Mostra a mensagem promocional no topo do site.</span>
+                    </div>
+                  </label>
+                  
+                  {hasMarquee === 1 && (
+                    <div className="mt-4 pl-4 border-l-2 border-emerald-500/30">
+                      <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Texto da Faixa Promocional</label>
+                      <input 
+                        type="text" 
+                        value={marqueeText}
+                        onChange={e => setMarqueeText(e.target.value)}
+                        placeholder="Ex: ✨ COMPRE MAIS DE UM E RECEBA DESCONTO GRADUALMENTE! ✨"
+                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      />
+                      <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-1">
+                        Deixe em branco para usar a mensagem padrão do sistema.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400">WhatsApp da Loja (Para Reservas)</label>
+                    <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">WhatsApp da Loja (Para Reservas)</label>
                     {originalWhatsapp && (
                       <span className="text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-md">
                         Atual: {originalWhatsapp}
@@ -1245,13 +1347,13 @@ export default function Admin() {
                     placeholder="+244 900 000 000"
                     className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   />
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-1">
                     Este número receberá as mensagens de reserva de encomendas feitas no site.
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">Endereço da Loja</label>
+                  <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Endereço da Loja</label>
                   <input 
                     type="text" 
                     value={storeAddress}
@@ -1259,7 +1361,7 @@ export default function Admin() {
                     placeholder="Ex: Luanda, Talatona"
                     className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   />
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-1">
                     Endereço exibido na página do produto.
                   </p>
                 </div>
@@ -1281,22 +1383,22 @@ export default function Admin() {
                 <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-4">Adicionar Novo Gerente</h3>
                 <div className="grid md:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">Email do Gerente</label>
+                    <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Email do Gerente</label>
                     <input 
                       type="email" 
                       value={newManagerEmail}
                       onChange={e => setNewManagerEmail(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">Senha de Acesso</label>
+                    <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Senha de Acesso</label>
                     <input 
                       type="text" 
                       value={newManagerPassword}
                       onChange={e => setNewManagerPassword(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                       required
                     />
                   </div>
@@ -1320,9 +1422,9 @@ export default function Admin() {
                       <div>
                         <p className="font-medium text-zinc-900 dark:text-white">{admin.email}</p>
                         <div className="flex items-center gap-2">
-                          <p className="text-xs text-zinc-500 capitalize">{admin.status}</p>
-                          <span className="text-xs text-zinc-300 dark:text-zinc-600">•</span>
-                          <p className="text-xs text-zinc-500 capitalize">{admin.role === 'superadmin' ? 'Super Admin' : admin.role === 'store_admin' ? 'Administrador' : 'Gerente'}</p>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-500 capitalize">{admin.status}</p>
+                          <span className="text-xs text-zinc-400 dark:text-zinc-600">•</span>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-500 capitalize">{admin.role === 'superadmin' ? 'Super Admin' : admin.role === 'store_admin' ? 'Administrador' : 'Gerente'}</p>
                         </div>
                       </div>
                     </div>
@@ -1365,7 +1467,7 @@ export default function Admin() {
                                 toast.error('Erro ao desativar gerente');
                               }
                             }}
-                            className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-500/10 dark:hover:bg-zinc-400/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-500/10 dark:hover:bg-zinc-400/10 rounded-lg transition-colors"
                             title="Desativar Gerente"
                           >
                             <XCircle className="w-5 h-5" />
@@ -1414,7 +1516,7 @@ export default function Admin() {
               )}
               
               <div>
-                <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">Novo Email (Opcional)</label>
+                <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Novo Email (Opcional)</label>
                 <input 
                   type="email" 
                   value={profileEmail}
@@ -1422,11 +1524,11 @@ export default function Admin() {
                   placeholder={email}
                   className="w-full bg-zinc-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                 />
-                <p className="text-xs text-zinc-500 mt-1">Deixe em branco para manter o atual.</p>
+                <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-1">Deixe em branco para manter o atual.</p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">Nova Senha (Opcional)</label>
+                <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Nova Senha (Opcional)</label>
                 <div className="relative">
                   <input 
                     type={showProfilePassword ? "text" : "password"} 
@@ -1438,12 +1540,12 @@ export default function Admin() {
                   <button
                     type="button"
                     onClick={() => setShowProfilePassword(!showProfilePassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                   >
                     {showProfilePassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                <p className="text-xs text-zinc-500 mt-1">Deixe em branco para manter a atual.</p>
+                <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-1">Deixe em branco para manter a atual.</p>
               </div>
               
               <div className="flex justify-end pt-4">

@@ -52,7 +52,7 @@ export default function RegisterStore() {
         <span>Voltar</span>
       </button>
 
-      <div className="max-w-md w-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm p-10 rounded-3xl shadow-sm hover:shadow-md border border-zinc-200 dark:border-zinc-800 my-8 transition-all duration-300">
+      <div className="max-w-md w-full bg-white/80 dark:bg-zinc-900 backdrop-blur-sm p-10 rounded-3xl shadow-sm hover:shadow-md border border-zinc-200 dark:border-zinc-800 my-8 transition-all duration-300">
         <h1 className="text-4xl font-bold text-center mb-3 tracking-tight">Criar a sua Loja</h1>
         <p className="text-center text-zinc-500 dark:text-zinc-400 mb-8 font-light">
           Preencha o formulário abaixo para solicitar a criação de uma nova loja.
