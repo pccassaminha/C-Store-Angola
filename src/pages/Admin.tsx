@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
-import { Settings, LogOut, Plus, Trash2, Save, Image as ImageIcon, FileText, Package, Users, CheckCircle, XCircle, TrendingUp, Trophy, Eye, EyeOff, Globe, Sun, Moon, ExternalLink } from 'lucide-react';
+import { Settings, LogOut, Plus, Trash2, Save, Image as ImageIcon, FileText, Package, Users, CheckCircle, XCircle, TrendingUp, Trophy, Eye, EyeOff, Globe, Sun, Moon, ExternalLink, Store } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Admin() {

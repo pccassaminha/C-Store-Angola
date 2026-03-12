@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Package, ShoppingCart, Plus, Edit, Trash2, LogOut, ExternalLink } from 'lucide-react';
+import { Package, ShoppingCart, Plus, Edit, Trash2, LogOut, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Product {
@@ -97,6 +97,25 @@ export default function StoreDashboard() {
       }
     } catch (error) {
       toast.error('An error occurred');
+    }
+  };
+
+  const handleToggleStatus = async (product: Product) => {
+    try {
+      const newStatus = product.status === 'active' ? 'inactive' : 'active';
+      const res = await fetch(`/api/products/${product.id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        toast.success(`Produto ${newStatus === 'active' ? 'ativado' : 'desativado'} com sucesso!`);
+        fetchDashboardData();
+      } else {
+        toast.error('Erro ao atualizar status do produto');
+      }
+    } catch (error) {
+      toast.error('Erro ao atualizar status do produto');
     }
   };
 
@@ -257,15 +276,28 @@ export default function StoreDashboard() {
                       <tr>
                         <th className="p-4 font-medium">Nome</th>
                         <th className="p-4 font-medium">Preço</th>
+                        <th className="p-4 font-medium">Status</th>
                         <th className="p-4 font-medium text-right">Ações</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                       {products.map((product) => (
-                        <tr key={product.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <tr key={product.id} className={`hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${product.status === 'inactive' ? 'opacity-50' : ''}`}>
                           <td className="p-4 font-medium">{product.name}</td>
                           <td className="p-4 text-zinc-500">{product.price}</td>
+                          <td className="p-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.status === 'active' || !product.status ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-500' : 'bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400'}`}>
+                              {product.status === 'active' || !product.status ? 'Ativo' : 'Inativo'}
+                            </span>
+                          </td>
                           <td className="p-4 flex justify-end gap-2">
+                            <button
+                              onClick={() => handleToggleStatus(product)}
+                              className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                              title={product.status === 'active' || !product.status ? 'Desativar Produto' : 'Ativar Produto'}
+                            >
+                              {product.status === 'active' || !product.status ? <XCircle size={18} /> : <CheckCircle size={18} />}
+                            </button>
                             <button
                               onClick={() => handleDeleteProduct(product.id)}
                               className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"

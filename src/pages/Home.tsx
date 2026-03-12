@@ -137,8 +137,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-8 bg-zinc-950">
         <div className="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center gap-6">
-          <p className="text-zinc-500 text-xs sm:text-sm text-center max-w-4xl">
-            APP Desenvolvida pelo GRUPO CASSAMINHA | NIF: 500286821
+          <p className="text-zinc-500 text-xs sm:text-sm text-center max-w-4xl uppercase">
+            APLICATIVO DESENVOLVIDO PELO GRUPO CASSAMINHA
           </p>
           <Link 
             to="/admin" 
